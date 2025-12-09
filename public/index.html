@@ -87,24 +87,28 @@
     async function setNr() {
         const person_id = document.getElementById('person_id').value;
         const url = base + '/web/person/data/' + encodeURIComponent(person_id) + '/phone_nr';
-        const formData = new FormData();
-        const phone = document.getElementById('phone_nr').value;
-        formData.append("phone_nr", phone);
+        const phone_nr = document.getElementById('phone_nr').value;
+
         const r = await fetch(url, {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `phone_nr=${encodeURIComponent(phone_nr)}`,
         });
     }
 
     async function setTimeout() {
         const person_id = document.getElementById('person_id').value;
         const url = base + '/web/person/data/' + encodeURIComponent(person_id) + '/timeout';
-        const formData = new FormData();
         const timeout = document.getElementById('timeout').value;
-        formData.append("timeout", timeout);
+
         const r = await fetch(url, {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded' // Key change
+            },
+            body: `timeout=${encodeURIComponent(timeout)}`, // Key change (manual serialization)
         });
     }
 

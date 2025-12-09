@@ -120,6 +120,8 @@ router.post('/web/person/data/:person_id/phone_nr', async (req, res) => {
 
   await ensureDevice(person_id);
 
+  console.log(phone_nr);
+
   await db.run(`UPDATE devices SET phone_nr = ? WHERE person_id = ?`, [phone_nr, person_id]);
 
   res.json({ ok: true, phone_nr });
@@ -130,6 +132,8 @@ router.post('/web/person/data/:person_id/timeout', async (req, res) => {
   const timeout = req.body.timeout;
 
   await ensureDevice(person_id);
+
+  console.log(timeout);
 
   await db.run(`UPDATE devices SET timeout = ? WHERE person_id = ?`, [timeout, person_id]);
 
