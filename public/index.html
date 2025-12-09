@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fall detection configuration</title>
+    <style>
+    body { font-family: Arial, Helvetica, sans-serif; max-width: 900px; margin: 20px; }
+    label { display:block; margin-top:10px; }
+    input, select { padding:6px; }
+    button { padding:8px 12px; margin:6px 2px; }
+    pre { background:#f4f4f4; padding:10px; border-radius:6px; max-height:300px; overflow:auto; }
+    .row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+    .small { width:120px; }
+  </style>
+</head>
+<body>
+    <h2>Person Info</h2>
+    <div>
+        <label> Type in full name that owns the device
+            <input id="full_name" value="" class="small"/>
+            <button onclick="findPerson()">Find person</button>
+        </label>
+        <label> Phone number to receive 
+            <input id="phone_nr" value="" class="small"/>
+            <button onclick="setNr()">Set receiver phone number</button>
+        </label>
+        <label> Timeout before sending notifs (seconds)
+            <input id="timeout" value="" class="small"/>
+            <button onclick="setTimeout()">Set timeout</button>
+        </label>
+        <label> Refresh fall counts
+            <button onclick="sync_data()">Sync</button>
+        </label>
+    </div>
+    <div>
+        <textarea id="person_id" class="small" hidden></textarea>
+
+        <label> Fall count (real)
+            <textarea id="fall_cnt_real" class="small"></textarea>
+        </label>
+        <label> Fall count (cancelled)
+            <textarea id="fall_cnt_cancelled" class="small"></textarea>
+        </label>
+
+        <label> Last synced 
+            <textarea id="last_synced" class="small"></textarea>
+        </label>
+    </div>
+
+    <div>
+        <label> Request status
+            <textarea id="request_status" value="" class="small"></textarea>
+        </label>
+    </div>
+
+    <h4>Raw results</h4>
+    <pre id="output">Ready.</pre>
+<script>
+    const base = location.origin;
+
+    function print(o){
+        const el = document.getElementById('output');
+        el.textContent = typeof o === 'string' ? o : JSON.stringify(o, null, 2);
+        console.log(o);
+    }
+
+    async function findPerson() {
+        const fulln = document.getElementById('full_name').value;
+        const url = base +'/web/person/find/' + encodeURIComponent(fulln);
+        const r = await fetch(url);
+        const data = await r.json();
+
+        if (data.ok) {
+            document.getElementById('phone_nr').value = data.phone_nr || "";
+            document.getElementById('timeout').value = data.timeout || "";
+            document.getElementById('person_id').value = data.person_id || "";
+            document.getElementById('fall_cnt_real').value = data.falls_real || "";
+            document.getElementById('fall_cnt_cancelled').value = data.falls_cancelled || "";
+        }  else {
+            document.getElementById('request_status').textContent = "Person not found!";
+        }
+        
+        print(data);
+    }
+
+    async function setNr() {
+        const person_id = document.getElementById('person_id').value;
+        const url = base + '/web/person/data/' + encodeURIComponent(person_id) + '/phone_nr';
+        const formData = new FormData();
+        const phone = document.getElementById('phone_nr').value;
+        formData.append("phone_nr", phone);
+        const r = await fetch(url, {
+            method: 'POST',
+            body: formData,
+        });
+    }
+
+    async function setTimeout() {
+        const person_id = document.getElementById('person_id').value;
+        const url = base + '/web/person/data/' + encodeURIComponent(person_id) + '/timeout';
+        const formData = new FormData();
+        const timeout = document.getElementById('timeout').value;
+        formData.append("timeout", timeout);
+        const r = await fetch(url, {
+            method: 'POST',
+            body: formData,
+        });
+    }
+
+    async function sync_data() {
+        const person_id = document.getElementById('person_id').value;
+        const url = base + '/web/person/data/' + encodeURIComponent(person_id) + '/sync';
+        const r = await fetch(url);
+        const data = await r.json();
+
+        document.getElementById('fall_cnt_cancelled').value = data.falls_cancelled;
+        document.getElementById('fall_cnt_real').value = data.falls_real;
+        document.getElementById('last_synced').value = data.sync_time;
+        print(data);
+    }
+</script>
+</body>
+</html>
